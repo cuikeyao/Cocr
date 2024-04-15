@@ -31,6 +31,9 @@
     <None Update="Resources\arrow.cur">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\favicon.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\view.cur">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

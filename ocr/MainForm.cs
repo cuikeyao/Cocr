@@ -64,6 +64,7 @@ namespace Cocr
             PictureBox fullPictureBox = new PictureBox();
 
             Form fullForm = new Form();
+            fullForm.Icon = new Icon(ResourcesUtils.getResource("favicon.ico"));
             fullForm.BackColor = Color.White;
             fullForm.MinimumSize = new Size(960, 720);
             fullForm.AutoSize = true;
