@@ -33,6 +33,8 @@
             resultTextBox = new RichTextBox();
             imagePanel = new Panel();
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
+            serverButton = new WinControl.ButtonCheck();
+            serverStatusLabel = new Label();
             SuspendLayout();
             // 
             // captureButton
@@ -64,12 +66,35 @@
             imagePanel.Size = new Size(377, 310);
             imagePanel.TabIndex = 2;
             // 
+            // serverButton
+            // 
+            serverButton.BackColor = Color.Transparent;
+            serverButton.Checked = false;
+            serverButton.CheckStyleX = WinControl.ButtonCheck.CheckStyle.style1;
+            serverButton.Location = new Point(92, 12);
+            serverButton.Name = "serverButton";
+            serverButton.Size = new Size(54, 20);
+            serverButton.TabIndex = 3;
+            serverButton.Click += serverButton_Click;
+            // 
+            // serverStatusLabel
+            // 
+            serverStatusLabel.AutoSize = true;
+            serverStatusLabel.Font = new Font("Microsoft YaHei UI", 10.5F, FontStyle.Regular, GraphicsUnit.Point, 134);
+            serverStatusLabel.Location = new Point(18, 11);
+            serverStatusLabel.Name = "serverStatusLabel";
+            serverStatusLabel.Size = new Size(68, 20);
+            serverStatusLabel.TabIndex = 4;
+            serverStatusLabel.Text = "服务状态:";
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.Control;
             ClientSize = new Size(800, 450);
+            Controls.Add(serverStatusLabel);
+            Controls.Add(serverButton);
             Controls.Add(imagePanel);
             Controls.Add(resultTextBox);
             Controls.Add(captureButton);
@@ -79,8 +104,8 @@
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Cocr";
-            Load += MainForm_Load;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -88,5 +113,7 @@
         public System.ComponentModel.BackgroundWorker backgroundWorker1;
         public Button captureButton;
         public RichTextBox resultTextBox;
+        private WinControl.ButtonCheck serverButton;
+        private Label serverStatusLabel;
     }
 }

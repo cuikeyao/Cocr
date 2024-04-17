@@ -1,4 +1,4 @@
-﻿namespace Cocr
+﻿namespace Cocr.WinForm
 {
     partial class ScreenForm
     {

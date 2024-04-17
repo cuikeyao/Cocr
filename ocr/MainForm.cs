@@ -1,7 +1,11 @@
+using Cocr.WinControl;
 using Cocr.Util;
+using Cocr.WinForm;
 using PaddleOCRSharp;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
+using System.Text;
 
 namespace Cocr
 {
@@ -11,10 +15,13 @@ namespace Cocr
         private bool isMoving = false;
         public PictureBox? pictureBox;
 
-        PaddleOCREngine? engine;
-        OCRResult? ocrResult;
+        private string ocrResult;
 
-        IntPtr viewPtr;
+        private IntPtr viewPtr;
+
+        private static HttpListener httpListener;
+        private static bool isServiceRunning = false;
+        CancellationTokenSource serverCancellationTokenSource;
 
         public MainForm()
         {
@@ -33,7 +40,6 @@ namespace Cocr
             viewPtr = LoadCursorFromFile(ResourcesUtils.getResource("view.cur"));
 
             pictureBox = new PictureBox();
-            imagePanel.Controls.Add(pictureBox);
             pictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
             pictureBox.Size = new Size(0, 0);
             pictureBox.Dock = DockStyle.None;
@@ -43,6 +49,7 @@ namespace Cocr
             pictureBox.MouseDoubleClick += PictureBox_MouseDoubleClick;
             pictureBox.MouseEnter += PictureBox_MouseEnter;
             pictureBox.MouseLeave += PictureBox_MouseLeave;
+            imagePanel.Controls.Add(pictureBox);
         }
 
         private void PictureBox_MouseLeave(object? sender, EventArgs e)
@@ -63,14 +70,7 @@ namespace Cocr
             PictureBox pictureBox = (PictureBox)sender;
             PictureBox fullPictureBox = new PictureBox();
 
-            Form fullForm = new Form();
-            fullForm.Icon = new Icon(ResourcesUtils.getResource("favicon.ico"));
-            fullForm.BackColor = Color.White;
-            fullForm.MinimumSize = new Size(960, 720);
-            fullForm.AutoSize = true;
-            fullForm.Resize += FullForm_SizeChanged;
-            fullForm.Controls.Add(fullPictureBox);
-            fullForm.StartPosition = FormStartPosition.CenterScreen;
+            FullForm fullForm = new FullForm(fullPictureBox);
 
             fullPictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
             fullPictureBox.Image = pictureBox.Image;
@@ -79,24 +79,6 @@ namespace Cocr
             fullPictureBox.Location = new Point((fullForm.Width - fullPictureBox.Width) / 2, (fullForm.Height - fullPictureBox.Height) / 2);
 
             fullForm.Show();
-        }
-
-        private void FullForm_SizeChanged(object? sender, EventArgs e)
-        {
-            if (sender == null) return;
-            Form fullForm = (Form)sender;
-            Control control = fullForm.Controls.OfType<PictureBox>().FirstOrDefault();
-            PictureBox pictureBox = (PictureBox)control;
-
-            // 计算 PictureBox 的新位置，使其位于 Form 的中间
-            int x = (fullForm.Width - pictureBox.Width) / 2;
-            int y = (fullForm.Height - pictureBox.Height) / 2;
-            pictureBox.Location = new Point(x, y);
-
-            Debug.WriteLine($"form: width:{fullForm.Width}, height:{fullForm.Height}");
-            Debug.WriteLine($"pictureBox: width:{control.Width}, height:{control.Height}");
-            Debug.WriteLine($"image: width:{pictureBox.Image.Width}, height:{pictureBox.Image.Height}");
-            Debug.WriteLine("");
         }
 
         private void InitializeBackgroundWorker()
@@ -126,7 +108,7 @@ namespace Cocr
             });
             Bitmap bitmap = (Bitmap)e.Argument;
 
-            ocrResult = engine.DetectText(bitmap);
+            ocrResult = OCRUtils.getInstance().getResult(bitmap);
 
             cts.Cancel();
         }
@@ -142,53 +124,9 @@ namespace Cocr
 
         private void backgroundWorker1_RunWorkerCompleted(object? sender, RunWorkerCompletedEventArgs e)
         {
-            resultTextBox.Text = ocrResult.Text;
+            resultTextBox.Text = ocrResult;
             captureButton.Text = "截图";
             captureButton.Enabled = true;
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            //自带轻量版中英文模型V4模型
-            OCRModelConfig? config = null;
-
-            //服务器中英文模型
-            // OCRModelConfig config = new OCRModelConfig();
-            //string root = System.IO.Path.GetDirectoryName(typeof(OCRModelConfig).Assembly.Location);
-            //string modelPathroot = root + @"\inferenceserver";
-            //config.det_infer = modelPathroot + @"\ch_ppocr_server_v2.0_det_infer";
-            //config.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
-            //config.rec_infer = modelPathroot + @"\ch_ppocr_server_v2.0_rec_infer";
-            //config.keys = modelPathroot + @"\ppocr_keys.txt";
-
-            //英文和数字模型V3
-            //OCRModelConfig config = new OCRModelConfig();
-            //string root = PaddleOCRSharp.EngineBase.GetRootDirectory();
-            //string modelPathroot = root + @"\en_v3";
-            //config.det_infer = modelPathroot + @"\en_PP-OCRv3_det_infer";
-            //config.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
-            //config.rec_infer = modelPathroot + @"\en_PP-OCRv3_rec_infer";
-            //config.keys = modelPathroot + @"\en_dict.txt";
-
-            //OCR参数
-            OCRParameter oCRParameter = new OCRParameter();
-            oCRParameter.cpu_math_library_num_threads = 10;//预测并发线程数
-            oCRParameter.enable_mkldnn = true;
-            oCRParameter.cls = false; //是否执行文字方向分类；默认false
-            oCRParameter.det = true;//是否开启文本框检测，用于检测文本块
-            oCRParameter.use_angle_cls = false;//是否开启方向检测，用于检测识别180旋转
-            oCRParameter.det_db_score_mode = true;//是否使用多段线，即文字区域是用多段线还是用矩形，
-            oCRParameter.max_side_len = 1920;
-            oCRParameter.rec_img_h = 48;
-            oCRParameter.rec_img_w = 320;
-            oCRParameter.det_db_thresh = 0.3f;
-            oCRParameter.det_db_box_thresh = 0.618f;
-
-            //识别结果对象
-            ocrResult = new OCRResult();
-            //初始化OCR引擎
-            engine = new PaddleOCREngine(config, oCRParameter);
-
         }
 
         private async void capture_Click(object sender, EventArgs e)
@@ -246,6 +184,113 @@ namespace Cocr
 
                 pictureBox.Location = new Point(newX, newY);
             }
+        }
+
+        private void serverButton_Click(object sender, EventArgs e)
+        {
+            ButtonCheck buttonCheck = (ButtonCheck)sender;
+            if (buttonCheck.Checked) {
+                StartHttpServer();
+                MessageBox.Show("服务已启动，监听端口：7262");
+            } else {
+                StopHttpServer();
+            }
+            isServiceRunning = !isServiceRunning;
+        }
+
+        private void StartHttpServer()
+        {
+            serverCancellationTokenSource = new CancellationTokenSource();
+            try
+            {
+                httpListener = new HttpListener();
+                httpListener.Start();
+                // 在后台线程开启服务
+                Task.Run(() => StartService(), serverCancellationTokenSource.Token);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("无法启动服务器: " + ex.Message);
+            }
+        }
+
+        private void StopHttpServer()
+        {
+            serverCancellationTokenSource.Cancel();
+        }
+
+        private void StartService()
+        {
+            httpListener.Prefixes.Add("http://*:7262/");
+            while (!serverCancellationTokenSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    // 等待请求并获得上下文对象
+                    HttpListenerContext context = httpListener.GetContext();
+
+                    // 处理请求
+                    HandleRequest(context);
+                } catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                    // 监听器已停止
+                    break;
+                }
+            }
+            try
+            {
+                httpListener.Stop();
+                httpListener.Close();
+            } catch (HttpListenerException ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
+        }
+
+        private void HandleRequest(HttpListenerContext context)
+        {
+            // 只接受POST方法
+            if (context.Request.HttpMethod != "POST")
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.Close();
+                return;
+            }
+
+            try
+            {
+                // 读取请求体中的内容
+                using (StreamReader reader = new StreamReader(context.Request.InputStream, context.Request.ContentEncoding))
+                {
+                    string requestBody = reader.ReadToEnd();
+
+                    // 在此处处理请求，产生响应字符串
+                    string responseString = ProcessRequest(requestBody);
+
+                    // 响应客户端
+                    byte[] buffer = Encoding.UTF8.GetBytes(responseString);
+                    context.Response.ContentLength64 = buffer.Length;
+                    context.Response.OutputStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                // 记录或处理异常
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            }
+            finally
+            {
+                // 关闭响应
+                context.Response.Close();
+            }
+        }
+
+        private string ProcessRequest(string requestBody)
+        {
+            // 处理请求和生成响应的业务逻辑
+            // 例如: 将输入字符串返回
+            return OCRUtils.getInstance().getResult(requestBody);
         }
     }
 }

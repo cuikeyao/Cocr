@@ -1,7 +1,8 @@
 ﻿using Cocr.Util;
 
-namespace Cocr
+namespace Cocr.WinForm
 {
+    // 截图界面
     public partial class ScreenForm : Form
     {
         Panel panel;
