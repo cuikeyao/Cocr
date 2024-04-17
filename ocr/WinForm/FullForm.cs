@@ -1,32 +1,25 @@
-﻿using Cocr.Util;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Cocr.WinForm
+﻿namespace Cocr.WinForm
 {
     public partial class FullForm : Form
     {
         private PictureBox pictureBox;
 
-        public FullForm(PictureBox pictureBox)
+        public FullForm(Image image)
         {
             InitializeComponent();
 
-            this.pictureBox = pictureBox;
-            this.Icon = new Icon(ResourcesUtils.getResource("favicon.ico"));
+            pictureBox = new PictureBox();
+            pictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
+            pictureBox.Image = (Image)(image.Clone());
+            pictureBox.Size = image.Size;
+
+            this.Icon = Resource.favicon;
             this.BackColor = Color.White;
             this.MinimumSize = new Size(960, 720);
-            this.AutoSize = true;
             this.Controls.Add(pictureBox);
             this.StartPosition = FormStartPosition.CenterScreen;
+
+            pictureBox.Location = new Point((this.Width - pictureBox.Width) / 2, (this.Height - pictureBox.Height) / 2);
 
             this.Resize += FullForm_SizeChanged;
         }
@@ -42,12 +35,6 @@ namespace Cocr.WinForm
             int x = (fullForm.Width - pictureBox.Width) / 2;
             int y = (fullForm.Height - pictureBox.Height) / 2;
             pictureBox.Location = new Point(x, y);
-
-            Debug.WriteLine($"form: width:{fullForm.Width}, height:{fullForm.Height}");
-            Debug.WriteLine($"pictureBox: width:{control.Width}, height:{control.Height}");
-            Debug.WriteLine($"image: width:{pictureBox.Image.Width}, height:{pictureBox.Image.Height}");
-            Debug.WriteLine("");
         }
-
     }
 }

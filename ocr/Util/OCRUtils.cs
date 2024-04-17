@@ -69,8 +69,10 @@ namespace Cocr.Util
             StringBuilder sb = new StringBuilder();
             foreach (var item in textBlocks)
             {
-                sb.Append(item.Text);
-                sb.Append('\n');
+                if (!string.IsNullOrWhiteSpace(item.Text)){
+                    sb.Append(item.Text);
+                    sb.Append('\n');
+                }
             }
             return sb.ToString();
         }

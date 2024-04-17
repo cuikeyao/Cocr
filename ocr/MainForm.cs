@@ -1,7 +1,6 @@
 using Cocr.WinControl;
 using Cocr.Util;
 using Cocr.WinForm;
-using PaddleOCRSharp;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
@@ -28,8 +27,6 @@ namespace Cocr
             InitializeComponent();
             InitializeControl();
             InitializeBackgroundWorker();
-            this.SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
-            this.UpdateStyles();
         }
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
@@ -68,15 +65,8 @@ namespace Cocr
         {
             if (sender == null) return;
             PictureBox pictureBox = (PictureBox)sender;
-            PictureBox fullPictureBox = new PictureBox();
 
-            FullForm fullForm = new FullForm(fullPictureBox);
-
-            fullPictureBox.SizeMode = PictureBoxSizeMode.AutoSize;
-            fullPictureBox.Image = pictureBox.Image;
-            fullPictureBox.Size = pictureBox.Image.Size;
-
-            fullPictureBox.Location = new Point((fullForm.Width - fullPictureBox.Width) / 2, (fullForm.Height - fullPictureBox.Height) / 2);
+            FullForm fullForm = new FullForm(pictureBox.Image);
 
             fullForm.Show();
         }
