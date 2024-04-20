@@ -1,4 +1,5 @@
 ﻿using PaddleOCRSharp;
+using System.Diagnostics;
 using System.Text;
 
 namespace Cocr.Util
@@ -14,24 +15,6 @@ namespace Cocr.Util
         {
             //自带轻量版中英文模型V4模型
             OCRModelConfig? config = null;
-
-            //服务器中英文模型
-            // OCRModelConfig config = new OCRModelConfig();
-            //string root = System.IO.Path.GetDirectoryName(typeof(OCRModelConfig).Assembly.Location);
-            //string modelPathroot = root + @"\inferenceserver";
-            //config.det_infer = modelPathroot + @"\ch_ppocr_server_v2.0_det_infer";
-            //config.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
-            //config.rec_infer = modelPathroot + @"\ch_ppocr_server_v2.0_rec_infer";
-            //config.keys = modelPathroot + @"\ppocr_keys.txt";
-
-            //英文和数字模型V3
-            //OCRModelConfig config = new OCRModelConfig();
-            //string root = PaddleOCRSharp.EngineBase.GetRootDirectory();
-            //string modelPathroot = root + @"\en_v3";
-            //config.det_infer = modelPathroot + @"\en_PP-OCRv3_det_infer";
-            //config.cls_infer = modelPathroot + @"\ch_ppocr_mobile_v2.0_cls_infer";
-            //config.rec_infer = modelPathroot + @"\en_PP-OCRv3_rec_infer";
-            //config.keys = modelPathroot + @"\en_dict.txt";
 
             //OCR参数
             OCRParameter oCRParameter = new OCRParameter();
@@ -74,15 +57,23 @@ namespace Cocr.Util
                     sb.Append('\n');
                 }
             }
-            return sb.ToString();
+            return sb.ToString().Trim();
         }
 
         public string getResult(Image image)
         {
-            OCRResult? ocrResult = engine.DetectText(image);
-            List<TextBlock> textBlocks = ocrResult.TextBlocks;
-
+            List<TextBlock> textBlocks;
+            try
+            {
+                OCRResult? ocrResult = engine.DetectText(image);
+                textBlocks = ocrResult.TextBlocks;
+            } catch (Exception ex)
+            {
+                textBlocks = new List<TextBlock>();
+                MessageBox.Show(ex.Message);
+            }
             return toString(textBlocks);
+
         }
         public string getResult(string imagebase64)
         {
@@ -100,8 +91,9 @@ namespace Cocr.Util
             {
                 OCRResult? ocrResult = engine.DetectTextBase64(imagebase64);
                 return toString(ocrResult.TextBlocks);
-            } catch (Exception e)
+            } catch (Exception ex)
             {
+                Debug.WriteLine(ex.Message);
                 return "";
             }
         }

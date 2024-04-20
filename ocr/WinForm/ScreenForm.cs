@@ -1,5 +1,4 @@
 ﻿using Cocr.Util;
-using System.Diagnostics;
 
 namespace Cocr.WinForm
 {
@@ -126,7 +125,6 @@ namespace Cocr.WinForm
         protected override void OnPaint(PaintEventArgs e)
         {
             Rectangle rect = GetRectangleFromPoints(startPoint, endPoint);
-            Debug.WriteLine(startPoint.X + "," + startPoint.Y + " " + endPoint.X + "," + endPoint.Y);
             e.Graphics.DrawRectangle(pen, rect);
         }
 
