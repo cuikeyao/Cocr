@@ -100,7 +100,7 @@ namespace Cocr.WinForm
             Bitmap bitmap = new Bitmap(x, y);
             using (Graphics graphics = Graphics.FromImage(bitmap))
             {
-                graphics.CopyFromScreen(new Point(Math.Min(startPoint.X + 1, endPoint.X), Math.Min(startPoint.Y + 1, endPoint.Y)), new Point(0, 0), new Size(x - 1, y - 1));
+                graphics.CopyFromScreen(new Point(Math.Min(startPoint.X, endPoint.X) + 1, Math.Min(startPoint.Y, endPoint.Y) + 1), new Point(0, 0), new Size(x - 1, y - 1));
             }
 
             mainForm.pictureBox.Location = new Point(0, 0);

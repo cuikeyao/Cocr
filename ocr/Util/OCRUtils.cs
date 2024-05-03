@@ -57,7 +57,7 @@ namespace Cocr.Util
                     sb.Append('\n');
                 }
             }
-            return sb.ToString().Trim();
+            return sb.ToString();
         }
 
         public string getResult(Image image)

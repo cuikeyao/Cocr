@@ -119,7 +119,7 @@ namespace Cocr
             captureButton.Enabled = true;
         }
 
-        private async void capture_Click(object sender, EventArgs e)
+        private void capture_Click(object sender, EventArgs e)
         {
             this.Opacity = 0;
             this.Visible = false;
@@ -266,6 +266,7 @@ namespace Cocr
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"{ex.Message}");
                 // 记录或处理异常
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
